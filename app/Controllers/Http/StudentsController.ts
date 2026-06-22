@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Student from 'App/Models/Student'
+import StudentValidator from 'App/Validators/StudentValidator'
 
 
 export default class StudentsControllerss {
@@ -29,28 +30,22 @@ export default class StudentsControllerss {
 
     // 3. INSERT a new record using Model method
     public async store({ request, response }: HttpContextContract) {
-        const data = request.only([
-            'first_name',
-            'last_name',
-            'gender',
-            'phone',
-            'dob',
-            'city',
-            'depart_id'
-        ])
 
-        // Student.create() automatically handles inserting and returning the object
-        const newStudent = await Student.create(data)
+        const payload = await request.validate(StudentValidator)
 
-        return response.created(newStudent)
+        const student = await Student.create(payload)
+
+        return response.created(student)
+
     }
 
     public async update({ params, request, response }: HttpContextContract) {
         const student = await Student.findOrFail(params.student_id)
 
-        const data = request.only(['first_name', 'last_name', 'phone', 'city', 'depart_id'])
+        //const data = request.only(['first_name', 'last_name', 'phone', 'city', 'depart_id'])
+        const payload = await request.validate(StudentValidator)
 
-        student.merge(data)
+        student.merge(payload)
 
         await student.save()
         return response.ok({ message: 'Student updated successfully', data: student })

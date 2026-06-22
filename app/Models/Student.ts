@@ -10,7 +10,7 @@ export default class Student extends BaseModel {
   public student_id!: number
 
   @column()
-  public first_name!: string
+  first_name!: string
 
   @column()
   public last_name!: string
@@ -19,10 +19,10 @@ export default class Student extends BaseModel {
   public gender!: string
 
   @column()
-  public phone!: bigint
+  public phone!: string
 
   @column()
-  public dob!: Date
+  public dob!: DateTime
 
   @column()
   public city!: string

@@ -5,30 +5,31 @@ export default class StudentValidator {
   constructor(protected ctx: HttpContextContract) { }
 
   public schema = schema.create({
-    first_name: schema.string({}, [
+    first_name: schema.string.optional({}, [
       rules.minLength(3),
       rules.maxLength(50),
     ]),
 
-    last_name: schema.string({}, [
+    last_name: schema.string.optional({}, [
       rules.minLength(1),
       rules.maxLength(50),
     ]),
 
-    gender: schema.enum(['Male', 'Female', 'Other'] as const),
+    gender: schema.enum.optional(['Male', 'Female', 'Other'] as const),
 
-    phone: schema.string({}, [
+    phone: schema.string.optional({}, [
       rules.mobile(),
+      rules.regex(/^[0-9]{10}$/),
     ]),
-
+                     
     dob: schema.date(),
 
-    city: schema.string({}, [
+    city: schema.string.optional({}, [
       rules.minLength(2),
       rules.maxLength(50),
     ]),
 
-    depart_id: schema.number([
+    depart_id: schema.number.optional([
       rules.exists({
         table: 'departments',
         column: 'department_id',
@@ -46,6 +47,7 @@ export default class StudentValidator {
 
     'phone.required': 'Phone number is required',
     'phone.mobile': 'Enter a valid mobile number',
+    'phone.regex' : 'Phone number must contain exactly 10 digits.', 
 
     'dob.required': 'Date of birth is required',
 

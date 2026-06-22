@@ -25,11 +25,13 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.get("/students", 'StudentsController.index')
+Route.get("/students", 'StudentsController.index').middleware('staff')
 Route.get("/students/:student_id", 'StudentsController.show')
 Route.post("/students", 'StudentsController.store')
 Route.put("/students/:student_id", 'StudentsController.update')
 Route.delete("/students/:student_id", 'StudentsController.destroy')
+
+
 Route.get('/departments', 'DepartmentsController.index')
 Route.post('/departments', 'DepartmentsController.store')
 Route.get('/departments/:departmentId', 'DepartmentsController.show')
