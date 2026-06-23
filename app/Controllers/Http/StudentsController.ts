@@ -27,7 +27,7 @@ export default class StudentsControllerss {
 
             return {student  , age}
         } catch (error) {
-            console.log(error)   // <-- Print the real error
+            console.log(error)   
             return response.status(500).json(error)
         }
     }
