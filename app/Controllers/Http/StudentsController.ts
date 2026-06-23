@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Student from 'App/Models/Student'
 import StudentValidator from 'App/Validators/StudentValidator'
+import AgeService from 'App/Services/AgeService'
 
 
 export default class StudentsControllerss {
@@ -21,7 +22,10 @@ export default class StudentsControllerss {
                 .preload('department')
                 .firstOrFail()
 
-            return student
+            //console.log(student.dob)
+            const age = await AgeService.calculateAge(student.dob)
+
+            return {student  , age}
         } catch (error) {
             console.log(error)   // <-- Print the real error
             return response.status(500).json(error)

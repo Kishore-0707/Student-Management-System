@@ -21,7 +21,7 @@ export default class Student extends BaseModel {
   @column()
   public phone!: string
 
-  @column()
+  @column.dateTime()
   public dob!: DateTime
 
   @column()
