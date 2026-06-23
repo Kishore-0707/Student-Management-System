@@ -64,22 +64,28 @@ export default class AuthController {
             })
         }
 
-        const token = jwt.sign(
-            {
+        const token = jwt.sign({
                 id: user.id,
                 email: user.email,
                 role: user.role
             },
-            Env.get('APP_KEY'),
-            {
+            Env.get('APP_KEY'),{
                 expiresIn: '1h'
             }
         )
+
+        
 
         return {
             message: 'Login Successful',
             token
         }
     }
+
+    public async index({ response }: HttpContextContract) {
+    
+            const users = await User.all()
+            return response.ok(users)
+        }
 
 }

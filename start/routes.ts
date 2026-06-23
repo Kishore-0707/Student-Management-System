@@ -25,11 +25,11 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.get("/students", 'StudentsController.index').middleware('Authorization')
+Route.get("/students", 'StudentsController.index').middleware(['Authorization','role:Teacher'])
 Route.get("/students/:student_id", 'StudentsController.show')
 Route.post("/students", 'StudentsController.store')
 Route.put("/students/:student_id", 'StudentsController.update')
-Route.delete("/students/:student_id", 'StudentsController.destroy')
+Route.delete("/students/:student_id", 'StudentsController.destroy').middleware(['Authorization','role:admin'])
 
 
 Route.get('/departments', 'DepartmentsController.index')
@@ -38,3 +38,4 @@ Route.get('/departments/:departmentId', 'DepartmentsController.show')
 
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
+Route.get('/user','AuthController.index')
