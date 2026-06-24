@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column} from '@ioc:Adonis/Lucid/Orm'
 // import Student from './Student'
 
 export default class Department extends BaseModel {
