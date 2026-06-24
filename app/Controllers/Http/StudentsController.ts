@@ -2,40 +2,45 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Student from 'App/Models/Student'
 import StudentValidator from 'App/Validators/StudentValidator'
 import AgeService from 'App/Services/AgeService'
-
+import StudentIdValidator from 'App/Validators/StudentIdValidator'
+import StudentInsertValidator from 'App/Validators/StudentInsertValidator'
 
 export default class StudentsControllerss {
 
     public async index({ response }: HttpContextContract) {
 
-        const students = await Student.all()
+        const students = Student.all()
         return response.ok(students)
     }
 
-    public async show({ params, response }: HttpContextContract) {
+    public async show({ request, response }: HttpContextContract) {
 
-        console.log(params)
-        try {
+        const payload = await request.validate({
+            schema: new StudentIdValidator({} as any).schema,
+            data: request.qs(),
+        })
 
-            const student = await Student.query()
-                .where('student_id', params.student_id)
-                .preload('department')
-                .firstOrFail()
+        const student = await Student.query()
+            .where('student_id', payload.student_id)
+            .preload('department')
+            .first()
 
-            //console.log(student.dob)
-            const age = await AgeService.calculateAge(student.dob)
-
-            return {student  , age}
-        } catch (error) {
-            console.log(error)   
-            return response.status(500).json(error)
+        if (!student) {
+            return response.notFound({
+                message: 'Student not found'
+            })
         }
+        //console.log(student.dob)
+        const age = AgeService.calculateAge(student.dob)
+
+        return { student, age }
+        
     }
 
     // 3. INSERT a new record using Model method
     public async store({ request, response }: HttpContextContract) {
 
-        const payload = await request.validate(StudentValidator)
+        const payload = await request.validate(StudentInsertValidator)
 
         const student = await Student.create(payload)
 
@@ -43,20 +48,28 @@ export default class StudentsControllerss {
 
     }
 
-    public async update({ params, request, response }: HttpContextContract) {
-        const student = await Student.findOrFail(params.student_id)
+    public async update({ request, response }: HttpContextContract) {
 
-        //const data = request.only(['first_name', 'last_name', 'phone', 'city', 'depart_id'])
-        const payload = await request.validate(StudentValidator)
+        const payload = request.qs()
 
-        student.merge(payload)
+        const student = await Student.findOrFail(payload.student_id)
+
+        const result = await request.validate(StudentValidator)
+
+        student.merge(result)
 
         await student.save()
         return response.ok({ message: 'Student updated successfully', data: student })
     }
 
-    public async destroy({ params, response }: HttpContextContract) {
-        const student = await Student.findOrFail(params.student_id)
+    public async destroy({ request, response }: HttpContextContract) {
+
+        const payload = await request.validate({
+            schema: new StudentIdValidator({} as any).schema,
+            data: request.qs(),
+        })
+
+        const student = await Student.findOrFail(payload.student_id)
 
         student.delete()
 

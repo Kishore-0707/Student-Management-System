@@ -1,28 +1,47 @@
 import { schema, CustomMessages, rules } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-export default class StudentValidator {
-  constructor(protected ctx: HttpContextContract) { }
+export default class StudentInsertValidator {
+  constructor(protected ctx: HttpContextContract) {}
 
+  /*
+   * Define schema to validate the "shape", "type", "formatting" and "integrity" of data.
+   *
+   * For example:
+   * 1. The username must be of data type string. But then also, it should
+   *    not contain special characters or numbers.
+   *    ```
+   *     schema.string([ rules.alpha() ])
+   *    ```
+   *
+   * 2. The email must be of data type string, formatted as a valid
+   *    email. But also, not used by any other user.
+   *    ```
+   *     schema.string([
+   *       rules.email(),
+   *       rules.unique({ table: 'users', column: 'email' }),
+   *     ])
+   *    ```
+   */
   public schema = schema.create({
-    first_name: schema.string.optional({}, [
+    first_name: schema.string({}, [
       rules.minLength(3),
       rules.maxLength(50),
     ]),
 
-    last_name: schema.string.optional({}, [
+    last_name: schema.string({}, [
       rules.minLength(1),
       rules.maxLength(50),
     ]),
 
-    gender: schema.enum.optional(['Male', 'Female', 'Other'] as const),
+    gender: schema.enum(['Male', 'Female', 'Other'] as const),
 
-    phone: schema.string.optional({}, [
+    phone: schema.string({}, [
       rules.mobile(),
       rules.regex(/^[0-9]{10}$/),
     ]),
                      
-    dob: schema.date.optional(),
+    dob: schema.date(),
 
     city: schema.string.optional({}, [
       rules.minLength(2),
