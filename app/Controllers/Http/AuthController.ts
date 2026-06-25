@@ -6,6 +6,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import UserValidator from 'App/Validators/UserValidator'
 import LoginValidator from 'App/Validators/LoginValidator'
 import UpdateUserValidator from 'App/Validators/UpdateUserValidator'
+import UserNotFoundException from 'App/Exceptions/UserNotFoundException'
 
 export default class AuthController {
     // Register a new user
@@ -69,7 +70,7 @@ export default class AuthController {
         return response.ok(users)
     }
 
-    public async show({ request, response }: HttpContextContract) {
+    public async show({ request }: HttpContextContract) {
 
         const payload = request.qs()
 
@@ -79,9 +80,7 @@ export default class AuthController {
 
 
         if (!users) {
-            return response.notFound({
-                message: 'User not found'
-            })
+            throw new UserNotFoundException();
         }
 
         return (users)
@@ -109,15 +108,13 @@ export default class AuthController {
 
     }
 
-    public async destroy({ request, params, response }: HttpContextContract) {
+    public async destroy({ request, response }: HttpContextContract) {
 
         const payload = request.qs()
         const user = await User.findOrFail(payload.id)
 
         if (!user.id) {
-            return response.notFound({
-                message: 'User not found'
-            })
+            throw new UserNotFoundException();
         }
 
         await user.delete()
