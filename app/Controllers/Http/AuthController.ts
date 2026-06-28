@@ -1,127 +1,116 @@
-import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import User from 'App/Models/User'
-import Hash from '@ioc:Adonis/Core/Hash'
-import jwt from 'jsonwebtoken'
-import Env from '@ioc:Adonis/Core/Env'
-import UserValidator from 'App/Validators/UserValidator'
-import LoginValidator from 'App/Validators/LoginValidator'
-import UpdateUserValidator from 'App/Validators/UpdateUserValidator'
-import UserNotFoundException from 'App/Exceptions/UserNotFoundException'
+import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
+import User from "App/Models/User";
+import Hash from "@ioc:Adonis/Core/Hash";
+import jwt from "jsonwebtoken";
+import Env from "@ioc:Adonis/Core/Env";
+import UserValidator from "App/Validators/UserValidator";
+import LoginValidator from "App/Validators/LoginValidator";
+import UpdateUserValidator from "App/Validators/UpdateUserValidator";
+import UserNotFoundException from "App/Exceptions/UserNotFoundException";
 
 export default class AuthController {
-    // Register a new user
-    public async register({ request, response }: HttpContextContract) {
+  // Register a new user
+  public async register({ request }: HttpContextContract) {
+    try {
+      const data = await request.validate(UserValidator);
 
-        const data = await request.validate(UserValidator)
+      data.password = await Hash.make(data.password);
 
-        data.password = await Hash.make(data.password)
+      return await User.create(data);
+    } catch (error) {
 
-        const user = await User.create(data)
+        return error
+    }
+  }
 
-        return response.created({
-            message: 'User registered successfully',
-            user
-        })
+  // Login
+  public async login({ request, response }: HttpContextContract) {
+    
+    const { email, password } = await request.validate(LoginValidator);
+
+    const user = await User.findBy("email", email);
+
+    if (!user) {
+      return response.unauthorized({
+        message: "Invalid Email",
+      });
     }
 
-    // Login
-    public async login({ request, response }: HttpContextContract) {
+    const verified = await Hash.verify(user.password, password);
 
-        const { email, password } = await request.validate(LoginValidator)
-
-        const user = await User.findBy('email', email)
-
-        if (!user) {
-            return response.unauthorized({
-                message: 'Invalid Email'
-            })
-        }
-
-        const verified = await Hash.verify(user.password, password)
-
-        if (!verified) {
-            return response.unauthorized({
-                message: 'Invalid Password'
-            })
-        }
-
-        const token = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-            },
-            Env.get('APP_KEY'),
-            {
-                expiresIn: '1h',
-            }
-        )
-
-        return {
-            message: 'Login Successful',
-            token,
-        }
-
+    if (!verified) {
+      return response.unauthorized({
+        message: "Invalid Password",
+      });
     }
 
-    public async index({ response }: HttpContextContract) {
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      Env.get("APP_KEY"),
+      {
+        expiresIn: "1h",
+      },
+    );
 
-        const users = await User.all()
-        return response.ok(users)
+    return {
+      message: "Login Successful",
+      token,
+    };
+  }
+
+  public async index({ response }: HttpContextContract) {
+    const users = await User.all();
+    return response.ok(users);
+  }
+
+  public async show({ request }: HttpContextContract) {
+    const payload = request.qs();
+
+    const users = await User.query().where("id", payload.id).first();
+
+    if (!users) {
+      throw new UserNotFoundException();
     }
 
-    public async show({ request }: HttpContextContract) {
+    return users;
+  }
 
-        const payload = request.qs()
+  public async update({ request, response }: HttpContextContract) {
+    const payload = request.qs();
 
-        const users = await User.query()
-            .where('id', payload.id)
-            .first()
+    const user = await User.findOrFail(payload.id);
+    const result = await request.validate(UpdateUserValidator);
 
-
-        if (!users) {
-            throw new UserNotFoundException();
-        }
-
-        return (users)
+    if (result.password) {
+      result.password = await Hash.make(result.password);
     }
 
-    public async update({ request, response }: HttpContextContract) {
+    user.merge(result);
 
-        const payload = request.qs()
+    await user.save();
 
-        const user = await User.findOrFail(payload.id)
-        const result = await request.validate(UpdateUserValidator)
+    return response.ok({
+      message: "User updated successfully",
+      data: user,
+    });
+  }
 
-        if (result.password) {
-            result.password = await Hash.make(result.password)
-        }
+  public async destroy({ request, response }: HttpContextContract) {
+    const payload = request.qs();
+    const user = await User.findOrFail(payload.id);
 
-        user.merge(result)
-
-        await user.save()
-
-        return response.ok({
-            message: 'User updated successfully',
-            data: user
-        })
-
+    if (!user.id) {
+      throw new UserNotFoundException();
     }
 
-    public async destroy({ request, response }: HttpContextContract) {
+    await user.delete();
 
-        const payload = request.qs()
-        const user = await User.findOrFail(payload.id)
-
-        if (!user.id) {
-            throw new UserNotFoundException();
-        }
-
-        await user.delete()
-
-        return response.ok({
-            message: 'User deleted successfully'
-        })
-    }
-
+    return response.ok({
+      message: "User deleted successfully",
+    });
+  }
 }

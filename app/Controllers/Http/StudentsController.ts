@@ -1,79 +1,78 @@
-import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Student from 'App/Models/Student'
-import StudentValidator from 'App/Validators/StudentValidator'
-import AgeService from 'App/Services/AgeService'
-import StudentIdValidator from 'App/Validators/StudentIdValidator'
-import StudentInsertValidator from 'App/Validators/StudentInsertValidator'
+import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
+import Student from "App/Models/Student";
+import StudentValidator from "App/Validators/StudentValidator";
+import AgeService from "App/Services/AgeService";
+import StudentIdValidator from "App/Validators/StudentIdValidator";
+import StudentInsertValidator from "App/Validators/StudentInsertValidator";
+import GetMethodValidator from "App/Validators/GetMethodValidator";
 
 export default class StudentsControllerss {
+  public async index({ request }: HttpContextContract) {
+    try {
+      const payload = await request.validate(GetMethodValidator);
 
-    public async index({ response }: HttpContextContract) {
-
-        const students = Student.all()
-        return response.ok(students)
+      return Student.query()
+        .orderBy("student_id", "asc")
+        .paginate(payload.page, payload.limit);
+    } catch (error) {
+      return error;
     }
+  }
 
-    public async show({ request, response }: HttpContextContract) {
+  public async show({ request }: HttpContextContract) {
+    try {
+      const payload = await request.validate(StudentIdValidator);
 
-        const payload = await request.validate({
-            schema: new StudentIdValidator({} as any).schema,
-            data: request.qs(),
-        })
+      const student = await Student.query()
+        .where("student_id", payload.student_id)
+        .preload("department")
+        .firstOrFail();
 
-        const student = await Student.query()
-            .where('student_id', payload.student_id)
-            .preload('department')
-            .first()
+      //console.log(student.dob)
+      const age = AgeService.calculateAge(student.dob);
 
-        if (!student) {
-            return response.notFound({
-                message: 'Student not found'
-            })
-        }
-        //console.log(student.dob)
-        const age = AgeService.calculateAge(student.dob)
-
-        return { student, age }
-        
+      return { student, age };
+    } catch (error) {
+      return error;
     }
+  }
 
-    // 3. INSERT a new record using Model method
-    public async store({ request, response }: HttpContextContract) {
+  // 3. INSERT a new record using Model method
+  public async store({ request }: HttpContextContract) {
+    try {
+      const payload = await request.validate(StudentInsertValidator);
 
-        const payload = await request.validate(StudentInsertValidator)
-
-        const student = await Student.create(payload)
-
-        return response.created(student)
-
+      return await Student.create(payload);
+    } catch (error) {
+      return error;
     }
+  }
 
-    public async update({ request, response }: HttpContextContract) {
+  public async update({ request }: HttpContextContract) {
+    try {
+      const { student_id } = await request.validate(StudentIdValidator);
 
-        const payload = request.qs()
+      const student = await Student.findOrFail(student_id);
+      const result = await request.validate(StudentValidator);
 
-        const student = await Student.findOrFail(payload.student_id)
+      student.merge(result);
 
-        const result = await request.validate(StudentValidator)
-
-        student.merge(result)
-
-        await student.save()
-        return response.ok({ message: 'Student updated successfully', data: student })
+      await student.save();
+      return student;
+    } catch (error) {
+      return error;
     }
+  }
 
-    public async destroy({ request, response }: HttpContextContract) {
+  public async destroy({ request }: HttpContextContract) {
+    try {
+      const payload = await request.validate(StudentIdValidator);
 
-        const payload = await request.validate({
-            schema: new StudentIdValidator({} as any).schema,
-            data: request.qs(),
-        })
+      const student = await Student.findOrFail(payload.student_id);
 
-        const student = await Student.findOrFail(payload.student_id)
-
-        student.delete()
-
-        await student.save()
-        return response.ok({ message: 'Student Deleted successfully', data: student })
+      return student.delete();
+    } catch (error) {
+      return error;
     }
+  }
 }
