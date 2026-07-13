@@ -24,9 +24,7 @@ export default class DepartmentUpdateValidator {
    *    ```
    */
   public schema = schema.create({
-    hodName: schema.string.optional({}, [
-      rules.email()
-    ]),
+    hodName: schema.string.optional(),
 
     departmentName: schema.string.optional({}, [
       rules.minLength(2),
@@ -48,7 +46,7 @@ export default class DepartmentUpdateValidator {
   public messages: CustomMessages = {
     'hodName.required': 'HOD email is required',
     'hodName.string': 'HOD email must be a string',
-    'hodName.email': 'Please enter a valid email address',
+    
 
     'departmentName.required': 'Department name is required',
     'departmentName.string': 'Department name must be a string',

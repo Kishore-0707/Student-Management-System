@@ -24,6 +24,9 @@ export default class UpdateUserValidator {
    *    ```
    */
   public schema = schema.create({
+
+    id : schema.number.optional(),
+
     email: schema.string.optional({}, [
       rules.email(),
       rules.unique({
@@ -51,6 +54,9 @@ export default class UpdateUserValidator {
    *
    */
   public messages: CustomMessages = {
+    'id.required' : 'id is required',
+    'id.number' : 'id must be number',
+    
     'email.string': 'Email must be a string',
     'email.email': 'Please enter a valid email address',
     'email.unique': 'Email already exists',

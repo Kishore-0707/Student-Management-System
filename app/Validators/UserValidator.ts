@@ -53,6 +53,7 @@ export default class UserValidator {
    *
    */
   public messages: CustomMessages = {
+
     'email.required': 'Email is required',
     'email.string': 'Email must be a string',
     'email.email': 'Please enter a valid email address',

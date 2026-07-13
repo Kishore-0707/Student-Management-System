@@ -36,6 +36,7 @@ Route.get('/departments', 'DepartmentsController.index')
 Route.post('/departments', 'DepartmentsController.store')
 Route.get('/findDepartment', 'DepartmentsController.show')
 Route.put('/departments/update','DepartmentsController.update')
+Route.delete("departments" , 'DepartmentsController.destroy')
 
 Route.get('/users', 'AuthController.index') //
 Route.get('/users/search', 'AuthController.show') //

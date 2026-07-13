@@ -12,20 +12,18 @@ export default class AuthController {
   // Register a new user
   public async register({ request }: HttpContextContract) {
     try {
-      const data = await request.validate(UserValidator);
+      const payload = await request.validate(UserValidator);
 
-      data.password = await Hash.make(data.password);
+      payload.password = await Hash.make(payload.password);
 
-      return await User.create(data);
+      return await User.create(payload);
     } catch (error) {
-
-        return error
+      return error;
     }
   }
 
   // Login
   public async login({ request, response }: HttpContextContract) {
-    
     const { email, password } = await request.validate(LoginValidator);
 
     const user = await User.findBy("email", email);
@@ -62,55 +60,65 @@ export default class AuthController {
     };
   }
 
-  public async index({ response }: HttpContextContract) {
-    const users = await User.all();
-    return response.ok(users);
+  public async index() {
+    try {
+      return await User.all();
+    } catch (error) {
+      return error;
+    }
   }
 
   public async show({ request }: HttpContextContract) {
-    const payload = request.qs();
+    try {
+      const payload = request.qs();
 
-    const users = await User.query().where("id", payload.id).first();
+      const users = await User.query().where("id", payload.id).first();
 
-    if (!users) {
-      throw new UserNotFoundException();
+      if (!users) {
+        throw new UserNotFoundException();
+      }
+
+      return users;
+    } catch (error) {
+      return error;
     }
-
-    return users;
   }
 
-  public async update({ request, response }: HttpContextContract) {
-    const payload = request.qs();
+  public async update({ request }: HttpContextContract) {
 
-    const user = await User.findOrFail(payload.id);
-    const result = await request.validate(UpdateUserValidator);
+    try{
+      const payload = await request.validate(UpdateUserValidator);
+      const user = await User.findOrFail(payload.id);
 
-    if (result.password) {
-      result.password = await Hash.make(result.password);
-    }
+      if (payload.password) {
+        payload.password = await Hash.make(payload.password);
+      }
 
-    user.merge(result);
+      user.merge(payload);
 
     await user.save();
+    return user;
 
-    return response.ok({
-      message: "User updated successfully",
-      data: user,
-    });
+
+    }catch(error){
+      return error;
+    }
   }
 
-  public async destroy({ request, response }: HttpContextContract) {
-    const payload = request.qs();
-    const user = await User.findOrFail(payload.id);
+  public async destroy({ request }: HttpContextContract) {
 
-    if (!user.id) {
+    try{
+      const payload = await request.validate(UpdateUserValidator);
+
+      const user = await User.findOrFail(payload.id);
+      if (!user.id) {
       throw new UserNotFoundException();
     }
-
-    await user.delete();
-
-    return response.ok({
-      message: "User deleted successfully",
-    });
+    return user.delete(); 
+    }
+    catch(error){
+      return error;
+    }
+    
   }
 }

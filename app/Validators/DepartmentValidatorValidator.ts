@@ -36,6 +36,7 @@ export default class DepartmentValidatorValidator {
 
   public messages: CustomMessages = {
     'departmentId': 'Department ID is Required',
+    
     'hodName.string': 'HOD email must be a string',
     'hodName.minLength': 'Department name must be at least 2 characters',
     'hodName.maxLength': 'Department name must not exceed 20 characters',
